@@ -1,0 +1,23 @@
+trigger LeadDuplicate on Lead (before insert, before update) 
+{
+    // set to store email ids
+	set<string> emailset = new set<string>();
+    // set to store phone numbers
+    set<String> phoneset = new set<String>();
+    // iterate through each Lead and their email and phone numbers
+    for(Lead l : trigger.new){
+        emailset.add(l.email);
+        phoneset.add(l.phone);
+    }
+    //new list to store the found email or phone numbers
+    list<Lead> LeadList = new List<Lead>();
+    // populating the list using soql
+    LeadList = [select email, phone from Lead where email in : emailset or phone in : phoneset];
+    // iterating through each Lead record to see if the same email or phone was found 
+    for(Lead l : trigger.new){
+        if(LeadList.size()>0){
+            // Displaying error
+            l.phone.adderror('duplicate Lead found');
+        }
+    }
+}
